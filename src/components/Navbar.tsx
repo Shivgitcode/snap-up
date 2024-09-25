@@ -5,9 +5,9 @@ import { Button } from "./ui/button"
 export default function Navbar() {
     const router = useRouter()
     return (
-        <div className="w-full">
+        <div className="w-full bg-mainbg">
             <nav className="w-[60%] flex justify-between mx-auto items-center pt-5">
-                <div className="font-bold text-white ">
+                <div className="font-bold text-white cursor-pointer" onClick={() => router.push("/")}>
                     SnapUp
                 </div>
                 <div className="flex gap-4">

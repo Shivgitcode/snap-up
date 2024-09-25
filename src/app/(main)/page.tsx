@@ -1,13 +1,16 @@
 "use client"
 
+import About from "@/components/About";
 import Hero from "@/components/Hero";
-import { trpc } from "@/trpc/client";
-import { signIn, useSession } from "next-auth/react";
+import StatusPage from "@/components/StatusPage";
+
 
 export default function Home() {
   return (
     <div className="text-black">
       <Hero></Hero>
+      <About></About>
+      <StatusPage></StatusPage>
 
     </div>
   )

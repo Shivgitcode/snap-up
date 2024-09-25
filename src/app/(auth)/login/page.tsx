@@ -35,24 +35,10 @@ const formSchema = z.object({
 export default function Login() {
     const router = useRouter()
     const session = useSession();
-    const [isLoading, setIsLoading] = useState(false)
 
     const handleSignIn = async () => {
-        setIsLoading(true)
-        const toastId = toast.loading('Signing in...')
-
-        try {
-            const result = await signIn('google', { redirect: false })
-            if (result?.error) {
-                toast.error(`Failed to sign in: ${result.error}`, { id: toastId })
-            } else {
-                toast.success('Signed in successfully', { id: toastId })
-            }
-        } catch (error) {
-            toast.error(`An error occurred: ${error instanceof Error ? error.message : String(error)}`, { id: toastId })
-        } finally {
-            setIsLoading(false)
-        }
+        signIn("github", { redirectTo: "/dashboard" });
+        toast.success("logged in successfully");
     }
 
 

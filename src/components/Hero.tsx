@@ -3,7 +3,7 @@ import { Input } from "./ui/input"
 import { Button } from "./ui/button"
 export default function Hero() {
     return (
-        <div className="w-full">
+        <div className="w-full bg-mainbg">
             <section className="w-[60%] mx-auto flex justify-between py-[80px] gap-[32px]">
                 <div className=" text-[60px] min-w-[50%] leading-[60px] trackin-[-1.5px] font-bold flex-1 text-white flex flex-col gap-10 self-center justify-center">
                     <h1 className="w-full flex-1">
