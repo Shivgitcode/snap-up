@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react";
 import { Button } from "./ui/button";
+import Form from "./Form";
 
 
 export default function DashboardMain() {
@@ -23,6 +24,10 @@ export default function DashboardMain() {
           {about.map(el => (
             <button key={el.id} className={` p-2 px-4 border-r ${el.id == 3 && "border-none"}  ${active === el.id && "bg-slate-500"} hover:bg-slate-400 transition-all duration-100`} onClick={() => setActive(el.id)}>{el.name}</button>
           ))}
+        </div>
+
+        <div>
+          <Form></Form>
         </div>
 
       </div>
