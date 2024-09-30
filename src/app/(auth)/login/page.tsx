@@ -113,7 +113,7 @@ export default function Login() {
                         <span className="px-5">or</span>
                         <div className="w-[40%] h-[1px] border"></div>
                     </div>
-                    <Button variant={"ghost"} className=" flex justify-center text-center mx-auto" onClick={handleSignIn}><Github></Github></Button>
+                    <Button variant={"ghost"} className=" flex justify-center text-center mx-auto hover:bg-slate-500" onClick={handleSignIn}><Github></Github></Button>
 
                 </form>
             </Form>

@@ -5,6 +5,9 @@ import {
     text,
     primaryKey,
     integer,
+    uuid,
+    varchar,
+
 } from "drizzle-orm/pg-core"
 import postgres from "postgres"
 import { drizzle } from "drizzle-orm/postgres-js"
@@ -88,3 +91,11 @@ export const authenticators = pgTable(
         }),
     })
 )
+
+export const monitors = pgTable("monitors", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    url: varchar("url", { length: 255 }).unique(),
+    time: integer("time"),
+    name: varchar("name", { length: 255 }).unique()
+})
+
