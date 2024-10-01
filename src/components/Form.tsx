@@ -29,7 +29,11 @@ const formSchema = z.object({
 
 export default function Component() {
     const [open, setOpen] = useState(false)
-    const mutation = trpc.createMonitor.useMutation()
+    const mutation = trpc.createMonitor.useMutation({
+        onSuccess: () => {
+            toast.success("created successfully", { position: "top-center" });
+        }
+    })
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -45,9 +49,6 @@ export default function Component() {
         console.log(values)
         const data = await mutation.mutateAsync({ url: values.url, interval: values.interval, name: values.name });
         console.log(data.data);
-        if (mutation.isSuccess) {
-            toast.success("monitor created")
-        }
 
 
 
