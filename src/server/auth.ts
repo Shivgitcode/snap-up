@@ -13,6 +13,7 @@ export const { handlers, auth } = NextAuth({
 
         })
 
-    ]
+    ],
+
 
 })

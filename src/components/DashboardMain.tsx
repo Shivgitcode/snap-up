@@ -5,6 +5,7 @@ import Form from "./Form";
 import { trpc } from "@/trpc/client";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { useSession } from "next-auth/react";
+import { auth } from "@/server/auth";
 
 
 export default function DashboardMain() {
@@ -13,6 +14,11 @@ export default function DashboardMain() {
     { id: 2, name: "Up" },
     { id: 3, name: "Down" },]
   const [active, setActive] = useState(1);
+  const getsession = async () => {
+    const session = await auth();
+    console.log(session?.user?.id);
+  }
+  getsession()
 
   return (
     <div className="bg-[#1e293b] min-w-full min-h-screen flex flex-col items-start">
@@ -27,6 +33,10 @@ export default function DashboardMain() {
           {about.map(el => (
             <button key={el.id} className={` p-2 px-4 border-r ${el.id == 3 && "border-none"}  ${active === el.id && "bg-slate-500"} hover:bg-slate-400 transition-all duration-100`} onClick={() => setActive(el.id)}>{el.name}</button>
           ))}
+        </div>
+
+        <div>
+
         </div>
 
       </div>

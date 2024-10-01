@@ -1,4 +1,4 @@
-import { desc } from "drizzle-orm";
+
 
 export const about = [
     { id: 1, head: "Versatile Notification Channels", desc: "Receive timely alerts through your preferred channels when your websites or servers encounter issues. We support SMS, email, Slack, Discord, webhook notification methods, and notifications through our iOS app." },
@@ -8,3 +8,5 @@ export const about = [
     { id: 5, head: "Customizable Fail Thresholds", desc: "Define the number of region failures that trigger an alert with our multi-region monitoring feature. Enhance your downtime detection accuracy and minimize false alarms." },
     { id: 6, head: "Advanced HTTP(S) Monitoring", desc: "Configure custom HTTP headers or payloads for monitoring requests, and check response headers and payloads for thorough website monitoring." }
 ]
+
+

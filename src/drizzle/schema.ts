@@ -93,9 +93,11 @@ export const authenticators = pgTable(
 )
 
 export const monitors = pgTable("monitors", {
-    id: uuid("id").primaryKey().defaultRandom(),
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     url: varchar("url", { length: 255 }).unique(),
     time: integer("time"),
-    name: varchar("name", { length: 255 }).unique()
+    name: varchar("name", { length: 255 }).unique(),
+    userId: text("userId").notNull().references(() => users.id)
+
 })
 
