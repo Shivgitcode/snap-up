@@ -5,7 +5,7 @@ export const env = createEnv({
     server: {
         GITHUB_CLIENT: z.string(),
         GITHUB_SECRET: z.string(),
-        DB_URL: z.string().url()
+        DB_URL: z.string()
     },
     client: {
         NEXT_PUBLIC_BASE_URL: z.string().url(),
