@@ -15,6 +15,16 @@ export default function DashboardMain() {
     { id: 2, name: "Up" },
     { id: 3, name: "Down" },]
   const [active, setActive] = useState(1);
+  const [allMonitors, setAllMonitors] = useState([])
+  const response = trpc.getAllMonitors.useQuery()
+  if (response.isLoading) {
+    console.log("loading")
+  }
+  useEffect(() => {
+    setAllMonitors(response.data?.data)
+  })
+
+  console.log(allMonitors)
 
 
 
