@@ -7,6 +7,7 @@ import { DialogTrigger } from "@radix-ui/react-dialog";
 import { useSession } from "next-auth/react";
 import { auth } from "@/server/auth";
 import AllPages from "./AllPages";
+import { Monitor } from "@/utils";
 
 
 export default function DashboardMain() {
@@ -15,7 +16,7 @@ export default function DashboardMain() {
     { id: 2, name: "Up" },
     { id: 3, name: "Down" },]
   const [active, setActive] = useState(1);
-  const [allMonitors, setAllMonitors] = useState([])
+  const [allMonitors, setAllMonitors] = useState<Monitor[] | null>(null)
   const response = trpc.getAllMonitors.useQuery()
   if (response.isLoading) {
     console.log("loading")
@@ -51,7 +52,12 @@ export default function DashboardMain() {
         </div>
 
         <div className="w-full">
-          <AllPages></AllPages>
+          {
+            allMonitors?.map(el => (
+              <AllPages el={el}></AllPages>
+
+            ))
+          }
 
         </div>
 

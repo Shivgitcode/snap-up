@@ -1,6 +1,7 @@
 import { Contact, Globe, LogOut, Monitor } from "lucide-react"
 import Link from "next/link"
 import { Button } from "./ui/button"
+import { signOut } from "next-auth/react"
 
 export default function Sidebar() {
     const side = [
@@ -22,7 +23,7 @@ export default function Sidebar() {
                 </div>
                 <div className="flex items-center text-white gap-5">
                     <LogOut></LogOut>
-                    <button>logout</button>
+                    <button onClick={() => signOut({ redirectTo: "/login" })}>logout</button>
                 </div>
             </nav>
         </div>

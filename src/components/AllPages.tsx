@@ -4,14 +4,12 @@ import { Button } from "./ui/button";
 import { Delete, EllipsisVertical, Pause, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { trpc } from "@/trpc/client";
+import { Monitor } from "@/utils";
 
-export default function AllPages() {
+export default function AllPages({ el }: { el: Monitor }) {
     const [isUp, setIsUp] = useState("up");
     const data = trpc.getAllMonitors.useQuery();
-    if (data.isLoading) {
-        console.log("loading")
-    }
-    console.log("data", data.data)
+
 
     return (
         <>
@@ -43,10 +41,6 @@ export default function AllPages() {
                     </DropdownMenu>
 
                 </div>
-
-
-
-
             </div>
 
 

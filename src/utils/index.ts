@@ -1,3 +1,4 @@
+import { z } from "zod"
 
 
 export const about = [
@@ -10,3 +11,12 @@ export const about = [
 ]
 
 
+const monitor = z.object({
+    id: z.string(),
+    name: z.string(),
+    url: z.string(),
+    time: z.date(),
+    userId: z.string()
+})
+
+export type Monitor = z.infer<typeof monitor>
