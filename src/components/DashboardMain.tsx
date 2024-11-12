@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Button } from "./ui/button";
 import Form from "./Form";
 import { trpc } from "@/trpc/client";
@@ -7,6 +7,7 @@ import { DialogTrigger } from "@radix-ui/react-dialog";
 import { useSession } from "next-auth/react";
 import { auth } from "@/server/auth";
 import AllPages from "./AllPages";
+import { CronJob } from "cron"
 import { Monitor } from "@/utils";
 
 
@@ -15,17 +16,12 @@ export default function DashboardMain() {
     { id: 1, name: "All" },
     { id: 2, name: "Up" },
     { id: 3, name: "Down" },]
-  const [active, setActive] = useState(1);
-  const [allMonitors, setAllMonitors] = useState<Monitor[] | null>(null)
-  const response = trpc.getAllMonitors.useQuery()
-  if (response.isLoading) {
-    console.log("loading")
+  type newMonitor = {
+    message: string,
+    data: string
   }
-  useEffect(() => {
-    setAllMonitors(response.data?.data)
-  })
-
-  console.log(allMonitors)
+  const [active, setActive] = useState(1);
+  const [loading, setLoading] = useState(true)
 
 
 
@@ -52,12 +48,6 @@ export default function DashboardMain() {
         </div>
 
         <div className="w-full">
-          {
-            allMonitors?.map(el => (
-              <AllPages el={el}></AllPages>
-
-            ))
-          }
 
         </div>
 

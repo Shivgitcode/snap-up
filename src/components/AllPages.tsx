@@ -19,7 +19,11 @@ export default function AllPages({ el }: { el: Monitor }) {
                         <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isUp === "up" ? "bg-green-600" : "bg-red-600"} opacity-75`}></span>
                         <span className={`relative inline-flex rounded-full h-3 w-3 ${isUp === "up" ? "bg-green-600" : "bg-red-600"}`}></span>
                     </span>
-                    <p className="text-white font-medium text-[16px] flex flex-col "><div>Monitor name</div> <div className="text-maintext">{isUp}</div></p>
+                    <div>
+                        <span className="text-white">{el.name}</span>
+                        <p className="text-white">{isUp}</p>
+
+                    </div>
                 </div>
 
                 <div>

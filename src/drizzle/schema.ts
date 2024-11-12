@@ -9,8 +9,7 @@ import {
     varchar,
 
 } from "drizzle-orm/pg-core"
-import postgres from "postgres"
-import { drizzle } from "drizzle-orm/postgres-js"
+import { InferSelectModel } from "drizzle-orm"
 import type { AdapterAccountType } from "next-auth/adapters"
 
 
@@ -23,6 +22,7 @@ export const users = pgTable("user", {
     email: text("email").unique(),
     emailVerified: timestamp("emailVerified", { mode: "date" }),
     image: text("image"),
+
 })
 
 export const accounts = pgTable(
@@ -95,9 +95,29 @@ export const authenticators = pgTable(
 export const monitors = pgTable("monitors", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     url: varchar("url", { length: 255 }).unique(),
-    time: integer("time"),
+    interval: integer("time"),
     name: varchar("name", { length: 255 }).unique(),
-    userId: text("userId").notNull().references(() => users.id)
+    userId: text("userId").notNull().references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow(),
+    latestCheck: timestamp("latestCheck")
 
 })
+
+export type Monitor = InferSelectModel<typeof monitors>
+
+export const monitorRelations = pgTable("monitorRelations", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("userId").notNull().references(() => users.id),
+    monitorId: text("monitorId").notNull().references(() => monitors.id)
+
+})
+export type MonitorRelation = InferSelectModel<typeof monitorRelations>
+
+export const monitorstatus = pgTable("monitorStatus", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    statuscode: integer("statuscode"),
+    status: text("status")
+})
+
+export type MonitorStatus = InferSelectModel<typeof monitorstatus>
 

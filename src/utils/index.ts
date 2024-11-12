@@ -15,7 +15,7 @@ const monitor = z.object({
     id: z.string(),
     name: z.string(),
     url: z.string(),
-    time: z.date(),
+    time: z.string(),
     userId: z.string()
 })
 
