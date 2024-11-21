@@ -15,6 +15,13 @@
       "when": 1731428756665,
       "tag": "0001_nosy_lady_ursula",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1732201729962,
+      "tag": "0002_black_edwin_jarvis",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { AppRouter } from "@/routers/router";
+import { MonitorProcedure } from "@/routers/router";
 import { createTRPCReact } from "@trpc/react-query";
 
-export const trpc = createTRPCReact<AppRouter>({})
+export const trpc = createTRPCReact<MonitorProcedure>({})

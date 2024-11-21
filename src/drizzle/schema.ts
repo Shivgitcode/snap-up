@@ -94,7 +94,7 @@ export const authenticators = pgTable(
 
 export const monitors = pgTable("monitors", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-    url: varchar("url", { length: 255 }).unique(),
+    url: varchar("url", { length: 255 }),
     interval: integer("time"),
     name: varchar("name", { length: 255 }).unique(),
     userId: text("userId").notNull().references(() => users.id),
@@ -115,6 +115,7 @@ export type MonitorRelation = InferSelectModel<typeof monitorRelations>
 
 export const monitorstatus = pgTable("monitorStatus", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    url: varchar("url", { length: 255 }),
     statuscode: integer("statuscode"),
     status: text("status")
 })
