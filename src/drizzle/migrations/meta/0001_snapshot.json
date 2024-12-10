@@ -1,6 +1,6 @@
 {
-  "id": "b150a65c-a52b-4d20-9736-335de35fc5c2",
-  "prevId": "9ba0cf44-8fd6-47f8-9497-a28b94ab455b",
+  "id": "4fbb750c-eb20-4ab8-b67a-9a8d4f9b7e30",
+  "prevId": "7053ff27-b85b-4aea-9ac7-9dc56f43c4d3",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -286,6 +286,18 @@
           "notNull": false,
           "default": "now()"
         },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "statuscode": {
+          "name": "statuscode",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "latestCheck": {
           "name": "latestCheck",
           "type": "timestamp",
@@ -311,13 +323,6 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "monitors_url_unique": {
-          "name": "monitors_url_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "url"
-          ]
-        },
         "monitors_name_unique": {
           "name": "monitors_name_unique",
           "nullsNotDistinct": false,
@@ -326,34 +331,6 @@
           ]
         }
       }
-    },
-    "public.monitorStatus": {
-      "name": "monitorStatus",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "statuscode": {
-          "name": "statuscode",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
     },
     "public.session": {
       "name": "session",

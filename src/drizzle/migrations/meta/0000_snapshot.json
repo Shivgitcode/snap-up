@@ -1,5 +1,5 @@
 {
-  "id": "9ba0cf44-8fd6-47f8-9497-a28b94ab455b",
+  "id": "7053ff27-b85b-4aea-9ac7-9dc56f43c4d3",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -190,6 +190,61 @@
         }
       }
     },
+    "public.monitorRelations": {
+      "name": "monitorRelations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "monitorId": {
+          "name": "monitorId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "monitorRelations_userId_user_id_fk": {
+          "name": "monitorRelations_userId_user_id_fk",
+          "tableFrom": "monitorRelations",
+          "tableTo": "user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "monitorRelations_monitorId_monitors_id_fk": {
+          "name": "monitorRelations_monitorId_monitors_id_fk",
+          "tableFrom": "monitorRelations",
+          "tableTo": "monitors",
+          "columnsFrom": [
+            "monitorId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
     "public.monitors": {
       "name": "monitors",
       "schema": "",
@@ -223,6 +278,19 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "latestCheck": {
+          "name": "latestCheck",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -243,13 +311,6 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "monitors_url_unique": {
-          "name": "monitors_url_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "url"
-          ]
-        },
         "monitors_name_unique": {
           "name": "monitors_name_unique",
           "nullsNotDistinct": false,
@@ -258,6 +319,54 @@
           ]
         }
       }
+    },
+    "public.monitorStatus": {
+      "name": "monitorStatus",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "monitor_id": {
+          "name": "monitor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "statuscode": {
+          "name": "statuscode",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "monitorStatus_monitor_id_monitors_id_fk": {
+          "name": "monitorStatus_monitor_id_monitors_id_fk",
+          "tableFrom": "monitorStatus",
+          "tableTo": "monitors",
+          "columnsFrom": [
+            "monitor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
     },
     "public.session": {
       "name": "session",

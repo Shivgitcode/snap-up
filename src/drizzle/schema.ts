@@ -99,6 +99,8 @@ export const monitors = pgTable("monitors", {
     name: varchar("name", { length: 255 }).unique(),
     userId: text("userId").notNull().references(() => users.id),
     createdAt: timestamp("createdAt").defaultNow(),
+    status:text("status"),
+    statuscode:integer("statuscode"),
     latestCheck: timestamp("latestCheck")
 
 })
@@ -113,12 +115,4 @@ export const monitorRelations = pgTable("monitorRelations", {
 })
 export type MonitorRelation = InferSelectModel<typeof monitorRelations>
 
-export const monitorstatus = pgTable("monitorStatus", {
-    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-    url: varchar("url", { length: 255 }),
-    statuscode: integer("statuscode"),
-    status: text("status")
-})
-
-export type MonitorStatus = InferSelectModel<typeof monitorstatus>
 
