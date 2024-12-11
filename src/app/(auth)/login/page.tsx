@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -49,6 +49,22 @@ export default function Login() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log(values);
+    const loginSubmit = async () => {
+      try {
+        signIn("credentials", values, {
+          redirect: "/dashboard",
+        });
+        return "logged In";
+      } catch (err) {
+        return "some error";
+      }
+    };
+
+    toast.promise(loginSubmit(), {
+      loading: "Loding",
+      success: (data) => `${data}`,
+      error: (err) => `${err.toString()}`,
+    });
   };
 
   return (
