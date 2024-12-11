@@ -1,8 +1,9 @@
 import { db } from "@/drizzle/db";
 import { monitorRelations, monitors, users } from "@/drizzle/schema";
+import { checkWebsitesToMonitor } from "@/actions/monitor";
 import { auth } from "@/server/auth";
 import { t } from "@/server/server";
-import { and, eq, gt, isNull, or, sql } from "drizzle-orm";
+import { eq, gt, isNull, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
 export const monitorProcedure = t.router({
@@ -95,6 +96,14 @@ export const monitorProcedure = t.router({
         message: "some error occured",
         data: error,
       };
+    }
+  }),
+  updateMonitor: t.procedure.query(async () => {
+    try {
+      await checkWebsitesToMonitor();
+      return "Function working";
+    } catch (error) {
+      console.log(error);
     }
   }),
 });

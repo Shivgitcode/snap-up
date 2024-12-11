@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/form";
 import { toast } from "sonner";
 import { trpc } from "@/trpc/client";
-import { checkWebsiteStatus } from "@/monitor/monitor";
+import { checkWebsiteStatus } from "@/actions/monitor";
 import { Monitor } from "@/utils";
 
 const formSchema = z.object({
@@ -57,8 +57,8 @@ export default function Component() {
   const [open, setOpen] = useState(false);
   const mutation = trpc.createMonitor.useMutation({
     onSuccess: (data) => {
-      console.log(data);
-      checkWebsiteStatus(data.data as Data[]);
+      console.log("djafskld", data);
+      checkWebsiteStatus(data.data[0] as Data);
       toast.success("created successfully", { position: "top-center" });
     },
   });

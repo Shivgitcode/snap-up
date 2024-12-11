@@ -15,6 +15,13 @@
       "when": 1733858749200,
       "tag": "0001_married_aqueduct",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1733943046985,
+      "tag": "0002_brainy_celestials",
+      "breakpoints": true
     }
   ]
 }

@@ -8,7 +8,6 @@ import { Monitor } from "@/utils";
 
 export default function AllPages({ el }: { el: Monitor }) {
     const [isUp, setIsUp] = useState("up");
-    const data = trpc.getAllMonitors.useQuery();
 
 
     return (

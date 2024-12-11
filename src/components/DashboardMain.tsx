@@ -3,13 +3,9 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { Button } from "./ui/button";
 import Form from "./Form";
 import { trpc } from "@/trpc/client";
-import { DialogTrigger } from "@radix-ui/react-dialog";
-import { useSession } from "next-auth/react";
-import { auth } from "@/server/auth";
-import AllPages from "./AllPages";
-import { CronJob } from "cron";
-import { Monitor } from "@/utils";
-import { monitorProcedure } from "@/routers/router";
+import { checkWebsitesToMonitor } from "@/actions/monitor";
+import Loader from "./Loader";
+import { keepPreviousData } from "@tanstack/react-query";
 
 export default function DashboardMain() {
   const about = [
@@ -24,7 +20,13 @@ export default function DashboardMain() {
   const [active, setActive] = useState(1);
   const [loading, setLoading] = useState(true);
   const query = trpc.getAllWebsites.useQuery();
+  const handleFetch = async () => {
+    await query.refetch();
+  };
   console.log(query.data);
+  // useEffect(() => {
+  //   checkWebsitesToMonitor();
+  // }, []);
 
   return (
     <div className="bg-[#1e293b] min-w-full min-h-screen flex flex-col items-start">
@@ -51,21 +53,28 @@ export default function DashboardMain() {
           </div>
 
           <div>
-            <Button variant={"default"} className=" bg-mainbg">
-              Refresh
+            <Button
+              variant={"default"}
+              className=" bg-mainbg"
+              onClick={handleFetch}
+            >
+              {query.isFetching ? "Refreshing..." : "Refresh"}
             </Button>
           </div>
         </div>
 
         <div className="w-full flex flex-col gap-5 mt-10">
-          {query.isLoading ? (
-            <span>Loading...</span>
-          ) : (
+          {query.isFetching ? (
+            <div className="flex justify-center  items-center mt-10 w-full">
+              <Loader></Loader>
+            </div>
+          ) : query.data ? (
             query.data?.monitors.map((el) => (
-              <div className=" w-full flex justify-between">
+              <div key={el.id} className=" w-full flex justify-between">
                 <div className=" text-white font-medium">
                   <p>{el.name}</p>
                   <p>{el.statuscode}</p>
+                  <p>{new Date(el.latestCheck!).toLocaleTimeString()}</p>
                 </div>
                 <div className="flex gap-2 items-center flex-row-reverse">
                   <div className="relative">
@@ -85,6 +94,8 @@ export default function DashboardMain() {
                 </div>
               </div>
             ))
+          ) : (
+            <p className=" text-white font-medium">no data</p>
           )}
         </div>
       </div>
