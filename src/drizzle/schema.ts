@@ -89,33 +89,59 @@ export const authenticators = pgTable(
   })
 );
 
-export const monitors = pgTable("monitors", {
+export const globalUrls = pgTable("globalUrls", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  url: varchar("url", { length: 255 }),
-  interval: integer("time"),
-  name: varchar("name", { length: 255 }).unique(),
-  userId: text("userId")
-    .notNull()
-    .references(() => users.id),
+    .$defaultFn(() => crypto.randomUUID())
+    .notNull(),
+  url: varchar("url", { length: 255 }).unique(),
+  lastStatusCode: integer("lastStatusCode"),
+  lastCheckTime: timestamp("lastCheckTime"),
   createdAt: timestamp("createdAt").defaultNow(),
-  status: text("status"),
-  statuscode: integer("statuscode"),
-  latestCheck: timestamp("latestCheck"),
+  activeMonitorCount: integer("activeMonitorCount").default(0),
 });
 
-export type Monitor = InferSelectModel<typeof monitors>;
+export type GlobalUrl = InferSelectModel<typeof globalUrls>;
 
-export const monitorRelations = pgTable("monitorRelations", {
+/**
+ * User Monitors table schema
+ * Stores user-specific monitoring configurations and status
+ */
+export const userMonitors = pgTable("userMonitors", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   userId: text("userId")
     .notNull()
-    .references(() => users.id),
-  monitorId: text("monitorId")
+    .references(() => users.id, { onDelete: "cascade" }),
+  urlId: text("urlId")
     .notNull()
-    .references(() => monitors.id),
+    .references(() => globalUrls.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }),
+  interval: integer("checkInterval").notNull(),
+  isActive: boolean("isActive").default(true),
+  isPaused: boolean("isPaused").default(false),
+  lastNotificationSent: timestamp("lastNotificationSent"),
+  createdAt: timestamp("createdAt").defaultNow(),
+  deletedAt: timestamp("deletedAt"),
 });
-export type MonitorRelation = InferSelectModel<typeof monitorRelations>;
+
+export type UserMonitor = InferSelectModel<typeof userMonitors>;
+
+/**
+ * Monitor History table schema
+ * Stores historical status checks for each URL
+ */
+export const monitorHistory = pgTable("monitorHistory", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  urlId: text("urlId")
+    .notNull()
+    .references(() => globalUrls.id, { onDelete: "cascade" }),
+  statusCode: integer("statusCode"),
+  responseTime: integer("responseTime"),
+  checkedAt: timestamp("checkedAt").defaultNow(),
+});
+
+export type MonitorHistory = InferSelectModel<typeof monitorHistory>;

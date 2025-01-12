@@ -1,98 +1,151 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import { Monitor, monitors } from "@/drizzle/schema";
+import { globalUrls, monitorHistory, userMonitors } from "@/drizzle/schema";
 import axios, { AxiosError } from "axios";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, gt, isNull, or, sql } from "drizzle-orm";
+import { env } from "../../env";
 
-async function checkWebsiteStatus(website: { id: string; url: string }) {
+interface WebsiteToCheck {
+  id: string; // globalUrls.id
+  url: string | null;
+  urlId: string;
+}
+
+export async function checkWebsiteStatus(website: WebsiteToCheck) {
+  console.log("function triggered");
+  const startTime = Date.now();
+  console.log(website.urlId);
+
   try {
-    const response = await axios.get(website.url, {
-      timeout: 5000, // 5 second timeout
-      validateStatus: (status) => true, // Don't throw on any status code
+    const response = await axios.get(website.url as string, {
+      timeout: 5000,
+      validateStatus: (status) => true,
     });
 
-    await db
-      .update(monitors)
-      .set({
-        status: response.status === 200 ? "success" : "failed",
-        statuscode: response.status,
-        latestCheck: sql`now()`,
-      })
-      .where(eq(monitors.id, website.id))
-      .returning({
-        status: monitors.status,
+    const responseTime = Date.now() - startTime;
+
+    await db.transaction(async (tx) => {
+      // Update global URL status
+      await tx
+        .update(globalUrls)
+        .set({
+          lastStatusCode: response.status,
+          lastCheckTime: sql`now()`,
+        })
+        .where(eq(globalUrls.id, website.urlId));
+
+      // Create history record
+      await tx.insert(monitorHistory).values({
+        urlId: website.urlId,
+        statusCode: response.status,
+        responseTime: responseTime,
       });
+    });
+
+    return {
+      success: true,
+      statusCode: response.status,
+      responseTime,
+      url: website.url,
+    };
   } catch (error) {
     let errorMessage = "Unknown error occurred";
     let statusCode = 500;
+    const responseTime = Date.now() - startTime;
 
     if (error instanceof AxiosError) {
       if (error.code === "ECONNREFUSED") {
-        errorMessage = "Connection refused - website might be down";
+        errorMessage = "Connection refused";
       } else if (error.code === "ETIMEDOUT") {
         errorMessage = "Request timed out";
       } else if (error.response) {
         statusCode = error.response.status;
-        errorMessage = `HTTP ${statusCode}: ${error.response.statusText}`;
+        errorMessage = `HTTP ${statusCode}`;
       } else if (error.request) {
-        errorMessage = "No response received from server";
+        errorMessage = "No response received";
       }
     }
 
-    // Log the error details
     console.error(`Error monitoring ${website.url}:`, {
       error: errorMessage,
       originalError: error,
     });
 
-    // Update database with error information
-    await db
-      .update(monitors)
-      .set({
-        status: "failed",
-        statuscode: statusCode,
-        latestCheck: sql`now()`,
-      })
-      .where(eq(monitors.id, website.id))
-      .returning({
-        status: monitors.status,
+    await db.transaction(async (tx) => {
+      await tx
+        .update(globalUrls)
+        .set({
+          lastStatusCode: statusCode,
+          lastCheckTime: sql`now()`,
+        })
+        .where(eq(globalUrls.id, website.id));
+
+      await tx.insert(monitorHistory).values({
+        urlId: website.id,
+        statusCode: statusCode,
+        responseTime: responseTime,
       });
+    });
+
+    return {
+      success: false,
+      statusCode,
+      errorMessage,
+      responseTime,
+      url: website.url,
+    };
   }
 }
 
-async function checkWebsitesToMonitor() {
+export async function checkWebsitesToMonitor() {
+  console.log("function triggered");
   try {
-    const allData = await axios.get(
-      "http://localhost:3000/api/trpc/getMonitorWebsiteToCheck",
-      {
-        timeout: 5000,
-      }
-    );
+    // Get websites to check directly from the database instead of making an HTTP call
+    const websitesToCheck = await db
+      .select({
+        id: globalUrls.id,
+        url: globalUrls.url,
+      })
+      .from(globalUrls)
+      .innerJoin(userMonitors, eq(globalUrls.id, userMonitors.urlId))
+      .where(
+        and(
+          gt(globalUrls.activeMonitorCount, 0),
+          or(
+            isNull(globalUrls.lastCheckTime),
+            sql`EXISTS (
+              SELECT 1 FROM ${userMonitors}
+              WHERE ${userMonitors.urlId} = ${globalUrls.id}
+              AND ${userMonitors.isActive} = true
+              AND ${userMonitors.isPaused} = false
+              AND now() - ${globalUrls.lastCheckTime} > ${userMonitors.interval} * interval '1 minute'
+            )`
+          )
+        )
+      )
+      .groupBy(globalUrls.id, globalUrls.url);
 
-    const allMonitors: { id: string; url: string }[] =
-      allData.data?.result?.data?.data;
-
-    if (!allMonitors || !Array.isArray(allMonitors)) {
-      throw new Error("Invalid data format received from API");
+    if (!websitesToCheck.length) {
+      return {
+        message: "No websites need checking at this time",
+        data: [],
+      };
     }
 
-    // Use Promise.all to handle all checks concurrently
-    await Promise.all(
-      allMonitors.map((monitor) => checkWebsiteStatus(monitor))
+    const results = await Promise.all(
+      websitesToCheck.map((website) => checkWebsiteStatus(website))
     );
+
+    return {
+      message: "Websites checked successfully",
+      data: results,
+    };
   } catch (error) {
     console.error("Failed to check websites:", {
       error: error instanceof Error ? error.message : "Unknown error",
       timestamp: new Date().toISOString(),
     });
-
-    // You might want to add additional error handling here:
-    // - Send notification to admin
-    // - Log to error tracking service
-    // - Retry after some delay
-    throw error; // Re-throw if you want calling code to handle it
+    throw error;
   }
 }
-
-export { checkWebsiteStatus, checkWebsitesToMonitor };
