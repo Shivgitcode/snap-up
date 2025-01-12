@@ -31,7 +31,7 @@ export default function DashboardMain() {
   const queryMutation = trpc.pauseMonitorStatus.useMutation({
     onSuccess: async (data) => {
       await query.refetch();
-      toast.success(data.messagek);
+      toast.success(data.message);
     },
   });
 
