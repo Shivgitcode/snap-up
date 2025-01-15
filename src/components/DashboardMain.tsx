@@ -1,12 +1,10 @@
 "use client";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "./ui/button";
 import Form from "./Form";
 import { trpc } from "@/trpc/client";
-import { checkWebsitesToMonitor } from "@/actions/monitor";
 import { EllipsisVertical } from "lucide-react";
 import Loader from "./Loader";
-import { keepPreviousData } from "@tanstack/react-query";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -107,8 +105,8 @@ export default function DashboardMain() {
               >
                 <div className=" text-white font-medium">
                   <p>{el.name}</p>
-                  <p>{el.statuscode}</p>
-                  <p>{new Date(el.lastCheck!).toLocaleTimeString()}</p>
+                  <p>{el.statuscode as number}</p>
+                  <p>{new Date(el.lastCheck as Date).toLocaleTimeString()}</p>
                 </div>
                 <div className="flex gap-2 items-center flex-row">
                   <div className="relative">

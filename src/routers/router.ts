@@ -7,7 +7,7 @@ import {
 } from "@/drizzle/schema";
 import { auth } from "@/server/auth";
 import { t } from "@/server/server";
-import { eq, gt, isNull, or, sql, and } from "drizzle-orm";
+import { eq, gt, isNull, or, sql, and, exists, not, desc } from "drizzle-orm";
 import { z } from "zod";
 import { checkWebsitesToMonitor } from "@/actions/monitor";
 
@@ -86,7 +86,7 @@ export const monitorProcedure = t.router({
   // Get all monitors for current user
   getAllWebsites: t.procedure.query(async () => {
     const session = await auth();
-    // console.log("hello", session);
+    console.log("hello", session);
     const findUser = await db
       .select()
       .from(users)
@@ -96,29 +96,40 @@ export const monitorProcedure = t.router({
       throw new Error("User not found");
     }
 
-    // Join with globalUrls to get URL information
+    // Get user monitors with latest history
     const userMonitorsWithUrls = await db
       .select({
         id: userMonitors.id,
         name: userMonitors.name,
         url: globalUrls.url,
         urlId: userMonitors.urlId,
+        userId: userMonitors.userId,
         interval: userMonitors.interval,
         isActive: userMonitors.isActive,
         isPaused: userMonitors.isPaused,
-        lastCheck: globalUrls.lastCheckTime,
-        lastStatus: globalUrls.lastStatusCode,
-        statuscode: monitorHistory.statusCode,
+        statuscode: sql`(${db
+          .select({ value: monitorHistory.statusCode })
+          .from(monitorHistory)
+          .where(eq(monitorHistory.urlId, globalUrls.id))
+          .orderBy(desc(monitorHistory.checkedAt))
+          .limit(1)})`.as("latest_status_code"),
+        lastCheck: sql`(${db
+          .select({ value: monitorHistory.checkedAt })
+          .from(monitorHistory)
+          .where(eq(monitorHistory.urlId, globalUrls.id))
+          .orderBy(desc(monitorHistory.checkedAt))
+          .limit(1)})`.as("latest_check_time"),
       })
       .from(userMonitors)
       .innerJoin(globalUrls, eq(userMonitors.urlId, globalUrls.id))
-      .innerJoin(monitorHistory, eq(monitorHistory.urlId, globalUrls.id))
       .where(
         and(
           eq(userMonitors.userId, findUser[0].id),
           eq(userMonitors.isActive, true)
         )
       );
+
+    console.log("user monitors", userMonitorsWithUrls);
 
     return {
       message: "These are your monitors",
