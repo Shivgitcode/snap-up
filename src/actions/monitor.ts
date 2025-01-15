@@ -9,7 +9,7 @@ import { env } from "../../env";
 interface WebsiteToCheck {
   id: string; // globalUrls.id
   url: string | null;
-  urlId: string;
+  urlId?: string;
 }
 
 export async function checkWebsiteStatus(website: WebsiteToCheck) {
@@ -33,11 +33,11 @@ export async function checkWebsiteStatus(website: WebsiteToCheck) {
           lastStatusCode: response.status,
           lastCheckTime: sql`now()`,
         })
-        .where(eq(globalUrls.id, website.urlId));
+        .where(eq(globalUrls.id, website.urlId as string));
 
       // Create history record
       await tx.insert(monitorHistory).values({
-        urlId: website.urlId,
+        urlId: website.urlId as string,
         statusCode: response.status,
         responseTime: responseTime,
       });

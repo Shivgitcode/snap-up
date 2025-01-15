@@ -34,6 +34,19 @@ export default function DashboardMain() {
       toast.success(data.message);
     },
   });
+  const deleteMutation = trpc.deleteMonitorStatus.useMutation({
+    onSuccess: async (data) => {
+      await query.refetch();
+    },
+  });
+
+  const handleDelete = (id: string, urlId: string) => {
+    toast.promise(deleteMutation.mutateAsync({ id, urlId }), {
+      loading: "Deleting...",
+      success: (data) => data.message,
+      error: (err) => err.message,
+    });
+  };
 
   console.log(query.data);
 
@@ -86,7 +99,12 @@ export default function DashboardMain() {
             </div>
           ) : query.data?.monitors.length != 0 ? (
             query.data?.monitors.map((el) => (
-              <div key={el.id} className=" w-full flex justify-between">
+              <div
+                key={el.id}
+                className={` w-full flex justify-between ${
+                  !el.isActive && "hidden"
+                }`}
+              >
                 <div className=" text-white font-medium">
                   <p>{el.name}</p>
                   <p>{el.statuscode}</p>
@@ -140,7 +158,10 @@ export default function DashboardMain() {
                         >
                           pause
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="pr-4 pl-2 cursor-pointer">
+                        <DropdownMenuItem
+                          className="pr-4 pl-2 cursor-pointer"
+                          onClick={() => handleDelete(el.id, el.urlId)}
+                        >
                           delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>

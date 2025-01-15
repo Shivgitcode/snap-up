@@ -102,6 +102,7 @@ export const monitorProcedure = t.router({
         id: userMonitors.id,
         name: userMonitors.name,
         url: globalUrls.url,
+        urlId: userMonitors.urlId,
         interval: userMonitors.interval,
         isActive: userMonitors.isActive,
         isPaused: userMonitors.isPaused,
@@ -198,6 +199,37 @@ export const monitorProcedure = t.router({
         }
         return {
           message: "paused successfully",
+        };
+      } catch (error) {
+        return {
+          message: "some error occured",
+          data: error,
+        };
+      }
+    }),
+  deleteMonitorStatus: t.procedure
+    .input(z.object({ id: z.string(), urlId: z.string() }))
+    .mutation(async ({ input }) => {
+      try {
+        const { id, urlId } = input;
+        await db.transaction(async (tx) => {
+          await tx
+            .update(userMonitors)
+            .set({ isActive: false, deletedAt: new Date() })
+            .where(eq(userMonitors.id, id));
+          await tx.update(globalUrls).set({
+            activeMonitorCount: sql`${globalUrls.activeMonitorCount}-1`,
+          });
+          const [globalUrl] = await tx
+            .select()
+            .from(globalUrls)
+            .where(eq(globalUrls.id, urlId));
+          if (globalUrl.activeMonitorCount === 0) {
+            await tx.delete(globalUrls).where(eq(globalUrls.id, urlId));
+          }
+        });
+        return {
+          message: "Monitor Deleted",
         };
       } catch (error) {
         return {

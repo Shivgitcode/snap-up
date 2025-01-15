@@ -24,9 +24,10 @@ import { toast } from "sonner";
 
 const formSchema = z
   .object({
-    username: z.string().min(2, {
+    name: z.string().min(2, {
       message: "Username must be at least 2 characters.",
     }),
+    email: z.string().email({ message: "Enter valid email" }),
     password: z
       .string()
       .min(8, { message: "Password must be at least 8 characters" }),
@@ -49,8 +50,9 @@ export default function Signup() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      name: "",
       password: "",
+      email: "",
     },
   });
   const router = useRouter();
@@ -83,7 +85,7 @@ export default function Signup() {
         >
           <FormField
             control={form.control}
-            name="username"
+            name="name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-mainbg">Username</FormLabel>
@@ -91,6 +93,24 @@ export default function Signup() {
                   <Input
                     className="text-mainbg"
                     placeholder="shadcn"
+                    {...field}
+                  />
+                </FormControl>
+
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-mainbg">Email</FormLabel>
+                <FormControl>
+                  <Input
+                    className="text-mainbg"
+                    placeholder="johndoe@gmail.com"
                     {...field}
                   />
                 </FormControl>

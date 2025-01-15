@@ -49,11 +49,14 @@ export default function Login() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log(values);
+
     const loginSubmit = async () => {
       try {
-        signIn("credentials", values, {
-          redirect: "/dashboard",
+        await signIn("credentials", {
+          ...values,
+          redirectTo: "/dashboard",
         });
+
         return "logged In";
       } catch (err) {
         return "some error";
@@ -61,7 +64,7 @@ export default function Login() {
     };
 
     toast.promise(loginSubmit(), {
-      loading: "Loding",
+      loading: "Loading",
       success: (data) => `${data}`,
       error: (err) => `${err.toString()}`,
     });
@@ -111,12 +114,7 @@ export default function Login() {
               <FormItem>
                 <FormLabel className="text-mainbg">Password</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Password"
-                    type="password"
-                    className="text-white"
-                    {...field}
-                  />
+                  <Input placeholder="Password" type="password" {...field} />
                 </FormControl>
 
                 <FormMessage />
