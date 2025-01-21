@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 export default function DashboardMain() {
   const about = [
@@ -21,6 +23,7 @@ export default function DashboardMain() {
     { id: 2, name: "Up" },
     { id: 3, name: "Down" },
   ];
+  const session = useSession();
   const [active, setActive] = useState(1);
   const query = trpc.getAllWebsites.useQuery();
   const handleFetch = async () => {
@@ -104,7 +107,9 @@ export default function DashboardMain() {
                 }`}
               >
                 <div className=" text-white font-medium">
-                  <p>{el.name}</p>
+                  <Link href={el.url as string} target="blank">
+                    {el.name}
+                  </Link>
                   <p>{el.statuscode as number}</p>
                   <p>{new Date(el.lastCheck as Date).toLocaleTimeString()}</p>
                 </div>

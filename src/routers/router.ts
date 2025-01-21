@@ -59,6 +59,7 @@ export const monitorProcedure = t.router({
         }
 
         // Create user-specific monitor
+
         const userMonitor = await tx
           .insert(userMonitors)
           .values({
@@ -177,7 +178,7 @@ export const monitorProcedure = t.router({
   }),
 
   // Update monitor status
-  updateMonitorStatus: t.procedure.mutation(async () => {
+  updateMonitorStatus: t.procedure.query(async () => {
     try {
       const result = await checkWebsitesToMonitor();
       return {

@@ -19,7 +19,7 @@ export async function checkWebsiteStatus(website: WebsiteToCheck) {
 
   try {
     const response = await axios.get(website.url as string, {
-      timeout: 5000,
+      timeout: 10000,
       validateStatus: (status) => true,
     });
 
@@ -111,16 +111,17 @@ export async function checkWebsitesToMonitor() {
       .innerJoin(userMonitors, eq(globalUrls.id, userMonitors.urlId))
       .where(
         and(
+          // Only include URLs with active monitors
           gt(globalUrls.activeMonitorCount, 0),
+
+          // Ensure the monitor is active and not paused
+          eq(userMonitors.isActive, true),
+          eq(userMonitors.isPaused, false),
+
+          // Check if the interval has been crossed
           or(
-            isNull(globalUrls.lastCheckTime),
-            sql`EXISTS (
-              SELECT 1 FROM ${userMonitors}
-              WHERE ${userMonitors.urlId} = ${globalUrls.id}
-              AND ${userMonitors.isActive} = true
-              AND ${userMonitors.isPaused} = false
-              AND now() - ${globalUrls.lastCheckTime} > ${userMonitors.interval} * interval '1 minute'
-            )`
+            isNull(globalUrls.lastCheckTime), // If never checked before
+            sql`now() - ${globalUrls.lastCheckTime} > ${userMonitors.interval} * interval '1 minute'` // If interval has passed
           )
         )
       )
