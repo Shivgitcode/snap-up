@@ -60,7 +60,7 @@ export default function Component() {
   const mutation = trpc.createMonitor.useMutation({
     onSuccess: (data) => {
       console.log("djafskld", data);
-      checkWebsiteStatus(data.data as Data);
+      checkWebsiteStatus({ ...data.data, id: data.data.urlId });
       toast.success("created successfully", { position: "top-center" });
     },
   });

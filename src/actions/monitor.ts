@@ -9,13 +9,13 @@ import { env } from "../../env";
 interface WebsiteToCheck {
   id: string; // globalUrls.id
   url: string | null;
-  urlId?: string;
 }
 
 export async function checkWebsiteStatus(website: WebsiteToCheck) {
   console.log("function triggered");
   const startTime = Date.now();
-  console.log(website.urlId);
+  console.log("this is website urlID");
+  console.log("website in checkstatus", website);
 
   try {
     const response = await axios.get(website.url as string, {
@@ -33,11 +33,11 @@ export async function checkWebsiteStatus(website: WebsiteToCheck) {
           lastStatusCode: response.status,
           lastCheckTime: sql`now()`,
         })
-        .where(eq(globalUrls.id, website.urlId as string));
+        .where(eq(globalUrls.id, website.id as string));
 
       // Create history record
       await tx.insert(monitorHistory).values({
-        urlId: website.urlId as string,
+        urlId: website.id,
         statusCode: response.status,
         responseTime: responseTime,
       });
@@ -126,6 +126,8 @@ export async function checkWebsitesToMonitor() {
         )
       )
       .groupBy(globalUrls.id, globalUrls.url);
+
+    console.log("in websites to check", websitesToCheck);
 
     if (!websitesToCheck.length) {
       return {

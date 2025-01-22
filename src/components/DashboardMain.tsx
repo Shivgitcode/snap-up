@@ -23,7 +23,6 @@ export default function DashboardMain() {
     { id: 2, name: "Up" },
     { id: 3, name: "Down" },
   ];
-  const session = useSession();
   const [active, setActive] = useState(1);
   const query = trpc.getAllWebsites.useQuery();
   const handleFetch = async () => {
@@ -48,8 +47,6 @@ export default function DashboardMain() {
       error: (err) => err.message,
     });
   };
-
-  console.log(query.data);
 
   return (
     <div className="bg-[#1e293b] min-w-full min-h-screen flex flex-col items-start">
@@ -111,7 +108,7 @@ export default function DashboardMain() {
                     {el.name}
                   </Link>
                   <p>{el.statuscode as number}</p>
-                  <p>{new Date(el.lastCheck as Date).toLocaleTimeString()}</p>
+                  <p>{new Date(el.lastCheck as Date).toUTCString()}</p>
                 </div>
                 <div className="flex gap-2 items-center flex-row">
                   <div className="relative">
