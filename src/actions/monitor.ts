@@ -5,95 +5,179 @@ import { globalUrls, monitorHistory, userMonitors } from "@/drizzle/schema";
 import axios, { AxiosError } from "axios";
 import { and, eq, gt, isNull, or, sql } from "drizzle-orm";
 import { env } from "../../env";
+import { auth } from "@/server/auth";
+import { sendNotification } from "./sendemail";
 
 interface WebsiteToCheck {
   id: string; // globalUrls.id
   url: string | null;
 }
 
-export async function checkWebsiteStatus(website: WebsiteToCheck) {
-  console.log("function triggered");
+interface WebsiteCheckResult {
+  success: boolean;
+  statusCode: number;
+  errorMessage?: string;
+  responseTime: number;
+  url: string;
+  isReachable: boolean;
+}
+
+export async function checkWebsiteStatus(
+  website: WebsiteToCheck
+): Promise<WebsiteCheckResult> {
   const startTime = Date.now();
-  console.log("this is website urlID");
-  console.log("website in checkstatus", website);
+  const session = await auth();
+
+  async function updateDatabase(
+    statusCode: number,
+    responseTime: number,
+    isReachable: boolean
+  ): Promise<void> {
+    try {
+      await db.transaction(async (tx) => {
+        await tx
+          .update(globalUrls)
+          .set({
+            lastStatusCode: statusCode,
+            lastCheckTime: sql`now()`,
+          })
+          .where(eq(globalUrls.id, website.id as string));
+
+        await tx.insert(monitorHistory).values({
+          urlId: website.id,
+          statusCode,
+          responseTime,
+        });
+      });
+    } catch (dbError) {
+      console.error("Database update failed:", dbError);
+      throw dbError;
+    }
+  }
+
+  // Validate URL format before making request
+  try {
+    new URL(website.url as string);
+  } catch (urlError) {
+    const responseTime = Date.now() - startTime;
+    const errorMessage = "Invalid URL format";
+
+    await sendNotification(errorMessage, responseTime, website.url as string);
+    await updateDatabase(0, responseTime, false);
+
+    return {
+      success: false,
+      statusCode: 0,
+      errorMessage,
+      responseTime,
+      url: website.url as string,
+      isReachable: false,
+    };
+  }
 
   try {
+    // Website status check with DNS lookup timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     const response = await axios.get(website.url as string, {
       timeout: 10000,
       validateStatus: (status) => true,
+      signal: controller.signal,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; WebsiteMonitor/1.0; +http://yourmonitor.com)",
+      },
     });
 
+    clearTimeout(timeoutId);
     const responseTime = Date.now() - startTime;
 
-    await db.transaction(async (tx) => {
-      // Update global URL status
-      await tx
-        .update(globalUrls)
-        .set({
-          lastStatusCode: response.status,
-          lastCheckTime: sql`now()`,
-        })
-        .where(eq(globalUrls.id, website.id as string));
+    // Send notification if status is not 200
+    if (response.status !== 200) {
+      await sendNotification(
+        response.statusText,
+        responseTime,
+        website.url as string
+      );
+    }
 
-      // Create history record
-      await tx.insert(monitorHistory).values({
-        urlId: website.id,
-        statusCode: response.status,
-        responseTime: responseTime,
-      });
-    });
+    await updateDatabase(response.status, responseTime, true);
 
     return {
       success: true,
       statusCode: response.status,
       responseTime,
-      url: website.url,
+      url: website.url as string,
+      isReachable: true,
     };
   } catch (error) {
-    let errorMessage = "Unknown error occurred";
-    let statusCode = 500;
     const responseTime = Date.now() - startTime;
+    let errorMessage = "Unknown error occurred";
+    let statusCode = 0; // Use 0 for non-HTTP errors
+    let isReachable = false;
 
     if (error instanceof AxiosError) {
-      if (error.code === "ECONNREFUSED") {
-        errorMessage = "Connection refused";
-      } else if (error.code === "ETIMEDOUT") {
-        errorMessage = "Request timed out";
-      } else if (error.response) {
-        statusCode = error.response.status;
-        errorMessage = `HTTP ${statusCode}`;
-      } else if (error.request) {
-        errorMessage = "No response received";
+      switch (error.code) {
+        case "ECONNREFUSED":
+          errorMessage =
+            "Connection refused - Server is not accepting connections";
+          break;
+        case "ETIMEDOUT":
+          errorMessage = "Request timed out - Server took too long to respond";
+          break;
+        case "ENOTFOUND":
+          errorMessage = "DNS lookup failed - Domain not found";
+          break;
+        case "ENETUNREACH":
+          errorMessage = "Network unreachable";
+          break;
+        case "ECONNRESET":
+          errorMessage = "Connection reset by peer";
+          break;
+        case "ECONNABORTED":
+          errorMessage = "Connection aborted";
+          break;
+        case "CERT_HAS_EXPIRED":
+          errorMessage = "SSL certificate has expired";
+          statusCode = 526; // Invalid SSL certificate
+          break;
+        default:
+          if (error.response) {
+            statusCode = error.response.status;
+            errorMessage = `HTTP ${statusCode}: ${error.response.statusText}`;
+            isReachable = true; // Server responded, even though with an error
+          } else if (error.request) {
+            errorMessage = "No response received from server";
+          }
       }
     }
 
+    // Log the error with detailed information
     console.error(`Error monitoring ${website.url}:`, {
       error: errorMessage,
       originalError: error,
+      timestamp: new Date().toISOString(),
+      websiteId: website.id,
+      errorCode: error instanceof AxiosError ? error.code : undefined,
+      statusCode,
+      isReachable,
     });
 
-    await db.transaction(async (tx) => {
-      await tx
-        .update(globalUrls)
-        .set({
-          lastStatusCode: statusCode,
-          lastCheckTime: sql`now()`,
-        })
-        .where(eq(globalUrls.id, website.id));
-
-      await tx.insert(monitorHistory).values({
-        urlId: website.id,
-        statusCode: statusCode,
-        responseTime: responseTime,
-      });
-    });
+    try {
+      await sendNotification(errorMessage, responseTime, website.url as string);
+      await updateDatabase(statusCode, responseTime, isReachable);
+    } catch (secondaryError) {
+      console.error("Failed to process error handling:", secondaryError);
+    }
 
     return {
       success: false,
       statusCode,
       errorMessage,
       responseTime,
-      url: website.url,
+      url: website.url as string,
+      isReachable,
     };
   }
 }

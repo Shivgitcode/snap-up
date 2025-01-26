@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { trpc } from "@/trpc/client";
 import { Monitor } from "@/utils";
 import { checkWebsiteStatus } from "@/actions/monitor";
+import { error } from "console";
 
 const formSchema = z.object({
   monitorType: z.enum(["http", "tcp", "udp"], {
@@ -61,7 +62,7 @@ export default function Component() {
     onSuccess: (data) => {
       console.log("djafskld", data);
       checkWebsiteStatus({ ...data.data, id: data.data.urlId });
-      toast.success("created successfully", { position: "top-center" });
+      setOpen(false);
     },
   });
 
@@ -77,12 +78,21 @@ export default function Component() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
-    const data = await mutation.mutateAsync({
+    const data = mutation.mutateAsync({
       url: values.url,
       interval: values.interval,
       name: values.name,
     });
-    console.log(data.data);
+    toast.promise(data, {
+      loading: "creating monitor",
+      success: (data) => `${data.message}`,
+      error: (err) => `${err.toString()}`,
+      position: "top-center",
+    });
+    form.resetField("name");
+    form.resetField("url");
+    form.resetField("monitorType");
+    form.resetField("interval");
   }
 
   return (

@@ -87,6 +87,7 @@ export const monitorProcedure = t.router({
   // Get all monitors for current user
   getAllWebsites: t.procedure.query(async () => {
     const session = await auth();
+    console.log("this is user session", session);
     const findUser = await db
       .select()
       .from(users)

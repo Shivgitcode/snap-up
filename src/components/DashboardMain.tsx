@@ -4,7 +4,6 @@ import { Button } from "./ui/button";
 import Form from "./Form";
 import { trpc } from "@/trpc/client";
 import { EllipsisVertical } from "lucide-react";
-import Loader from "./Loader";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,8 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
 import { toast } from "sonner";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { Spinner } from "./Spinner";
 
 export default function DashboardMain() {
   const about = [
@@ -24,6 +23,7 @@ export default function DashboardMain() {
     { id: 3, name: "Down" },
   ];
   const [active, setActive] = useState(1);
+
   const query = trpc.getAllWebsites.useQuery();
   const handleFetch = async () => {
     await query.refetch();
@@ -93,7 +93,7 @@ export default function DashboardMain() {
         <div className="w-full flex flex-col gap-5 mt-10">
           {query.isFetching ? (
             <div className="flex justify-center  items-center mt-10 w-full">
-              <Loader></Loader>
+              <Spinner size="medium" className="text-white"></Spinner>
             </div>
           ) : query.data?.monitors.length != 0 ? (
             query.data?.monitors.map((el) => (

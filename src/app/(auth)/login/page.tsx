@@ -20,7 +20,7 @@ import { redirect, useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useState } from "react";
-import Loader from "@/components/Loader";
+import { Spinner } from "@/components/Spinner";
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -133,7 +133,11 @@ export default function Login() {
               className="w-full"
               disabled={loading ? true : false}
             >
-              {loading ? <Loader></Loader> : "submit"}
+              {loading ? (
+                <Spinner size="small" className=" text-white"></Spinner>
+              ) : (
+                "submit"
+              )}
             </Button>
           </div>
           <div className="flex justify-center items-center max-h-fit">
