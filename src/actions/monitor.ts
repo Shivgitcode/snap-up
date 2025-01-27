@@ -4,12 +4,11 @@ import { db } from "@/drizzle/db";
 import { globalUrls, monitorHistory, userMonitors } from "@/drizzle/schema";
 import axios, { AxiosError } from "axios";
 import { and, eq, gt, isNull, or, sql } from "drizzle-orm";
-import { env } from "../../env";
-import { auth } from "@/server/auth";
 import { sendNotification } from "./sendemail";
+import { createProducer } from "@/kafkaconfig/producer";
 
 interface WebsiteToCheck {
-  id: string; // globalUrls.id
+  id: string;
   url: string | null;
 }
 
@@ -26,12 +25,10 @@ export async function checkWebsiteStatus(
   website: WebsiteToCheck
 ): Promise<WebsiteCheckResult> {
   const startTime = Date.now();
-  const session = await auth();
 
   async function updateDatabase(
     statusCode: number,
-    responseTime: number,
-    isReachable: boolean
+    responseTime: number
   ): Promise<void> {
     try {
       await db.transaction(async (tx) => {
@@ -63,7 +60,7 @@ export async function checkWebsiteStatus(
     const errorMessage = "Invalid URL format";
 
     await sendNotification(errorMessage, responseTime, website.url as string);
-    await updateDatabase(0, responseTime, false);
+    await updateDatabase(0, responseTime);
 
     return {
       success: false,
@@ -85,8 +82,7 @@ export async function checkWebsiteStatus(
       validateStatus: (status) => true,
       signal: controller.signal,
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; WebsiteMonitor/1.0; +http://yourmonitor.com)",
+        "User-Agent": `Mozilla/5.0 (compatible; WebsiteMonitor/1.0; +${website.url})`,
       },
     });
 
@@ -102,7 +98,8 @@ export async function checkWebsiteStatus(
       );
     }
 
-    await updateDatabase(response.status, responseTime, true);
+    await updateDatabase(response.status, responseTime);
+    await createProducer({ statuscode: response.status, responseTime });
 
     return {
       success: true,
@@ -166,7 +163,7 @@ export async function checkWebsiteStatus(
 
     try {
       await sendNotification(errorMessage, responseTime, website.url as string);
-      await updateDatabase(statusCode, responseTime, isReachable);
+      await updateDatabase(statusCode, responseTime);
     } catch (secondaryError) {
       console.error("Failed to process error handling:", secondaryError);
     }

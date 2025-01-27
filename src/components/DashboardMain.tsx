@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import Link from "next/link";
 import { Spinner } from "./Spinner";
+import { useRouter } from "next/navigation";
 
 export default function DashboardMain() {
   const about = [
@@ -23,7 +24,7 @@ export default function DashboardMain() {
     { id: 3, name: "Down" },
   ];
   const [active, setActive] = useState(1);
-
+  const router = useRouter();
   const query = trpc.getAllWebsites.useQuery();
   const handleFetch = async () => {
     await query.refetch();
@@ -99,9 +100,12 @@ export default function DashboardMain() {
             query.data?.monitors.map((el) => (
               <div
                 key={el.id}
+                onClick={() => {
+                  router.push(`/Statistics/${el.urlId}`);
+                }}
                 className={` w-full flex justify-between ${
                   !el.isActive && "hidden"
-                }`}
+                } hover:bg-gray-700 rounded-sm px-2 py-2 duration-150 transition-all`}
               >
                 <div className=" text-white font-medium">
                   <Link href={el.url as string} target="blank">
