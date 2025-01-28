@@ -8,9 +8,9 @@ import { fetchAvatar } from "@/actions/random";
 
 export default function Sidebar() {
   const side = [
-    { id: 1, name: "Monitors", icon: Monitor },
-    { id: 2, name: "Contacts", icon: Contact },
-    { id: 3, name: "Status Page", icon: Globe },
+    { id: 1, name: "Monitors", icon: Monitor, link: "/dashboard" },
+    { id: 2, name: "Contacts", icon: Contact, link: "/dashboard" },
+    { id: 3, name: "Status Page", icon: Globe, link: "/dashboard" },
   ];
   const query = useQuery({
     queryKey: ["avatar"],
@@ -36,7 +36,7 @@ export default function Sidebar() {
             <ul>
               {side.map((el) => {
                 return (
-                  <li key={el.id}>
+                  <Link href={`${el.link}`} key={el.id}>
                     <Button
                       variant={"ghost"}
                       className="flex items-center gap-5 mb-10 text-white hover:bg-transparent hover:text-white"
@@ -44,7 +44,7 @@ export default function Sidebar() {
                       <el.icon />
                       <span>{el.name}</span>
                     </Button>
-                  </li>
+                  </Link>
                 );
               })}
             </ul>
