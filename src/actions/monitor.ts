@@ -81,7 +81,7 @@ export async function checkWebsiteStatus(
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     const response = await axios.get(website.url as string, {
-      timeout: 10000,
+      timeout: 20000,
       validateStatus: (status) => true,
       signal: controller.signal,
       headers: {
