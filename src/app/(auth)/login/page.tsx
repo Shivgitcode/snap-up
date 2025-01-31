@@ -19,6 +19,8 @@ import { signIn, useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useState } from "react";
+import { Spinner } from "@/components/Spinner";
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -31,6 +33,7 @@ const formSchema = z.object({
 
 export default function Login() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const session = useSession();
 
   const handleSignIn = async () => {
@@ -52,10 +55,13 @@ export default function Login() {
 
     const loginSubmit = async () => {
       try {
+        setLoading(true);
+
         await signIn("credentials", {
           ...values,
           redirectTo: "/dashboard",
         });
+        setLoading(false);
 
         return "logged In";
       } catch (err) {
@@ -122,8 +128,16 @@ export default function Login() {
             )}
           />
           <div className=" flex w-full items-center justify-center gap-8">
-            <Button type="submit" className="w-full">
-              Submit
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading ? true : false}
+            >
+              {loading ? (
+                <Spinner size="small" className=" text-white"></Spinner>
+              ) : (
+                "submit"
+              )}
             </Button>
           </div>
           <div className="flex justify-center items-center max-h-fit">
@@ -135,6 +149,7 @@ export default function Login() {
             variant={"ghost"}
             className=" flex justify-center text-center mx-auto hover:bg-slate-500"
             onClick={handleSignIn}
+            disabled={loading ? true : false}
           >
             <Github></Github>
           </Button>

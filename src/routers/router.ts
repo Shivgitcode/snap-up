@@ -59,6 +59,7 @@ export const monitorProcedure = t.router({
         }
 
         // Create user-specific monitor
+
         const userMonitor = await tx
           .insert(userMonitors)
           .values({
@@ -86,7 +87,7 @@ export const monitorProcedure = t.router({
   // Get all monitors for current user
   getAllWebsites: t.procedure.query(async () => {
     const session = await auth();
-    console.log("hello", session);
+    console.log("this is user session", session);
     const findUser = await db
       .select()
       .from(users)
@@ -129,55 +130,14 @@ export const monitorProcedure = t.router({
         )
       );
 
-    console.log("user monitors", userMonitorsWithUrls);
-
     return {
       message: "These are your monitors",
       monitors: userMonitorsWithUrls,
     };
   }),
 
-  // Get monitors that need to be checked
-  getMonitorWebsiteToCheck: t.procedure.query(async () => {
-    try {
-      const websitesToCheck = await db
-        .select({
-          id: globalUrls.id,
-          url: globalUrls.url,
-        })
-        .from(globalUrls)
-        .innerJoin(userMonitors, eq(globalUrls.id, userMonitors.urlId))
-        .where(
-          and(
-            gt(globalUrls.activeMonitorCount, 0),
-            or(
-              isNull(globalUrls.lastCheckTime),
-              sql`EXISTS (
-                SELECT 1 FROM ${userMonitors}
-                WHERE ${userMonitors.urlId} = ${globalUrls.id}
-                AND ${userMonitors.isActive} = true
-                AND ${userMonitors.isPaused} = false
-                AND now() - ${globalUrls.lastCheckTime} > ${userMonitors.interval} * interval '1 minute'
-              )`
-            )
-          )
-        )
-        .groupBy(globalUrls.id, globalUrls.url);
-
-      return {
-        message: "Websites to check",
-        data: websitesToCheck,
-      };
-    } catch (error) {
-      return {
-        message: "Error occurred",
-        data: error,
-      };
-    }
-  }),
-
   // Update monitor status
-  updateMonitorStatus: t.procedure.mutation(async () => {
+  updateMonitorStatus: t.procedure.query(async () => {
     try {
       const result = await checkWebsitesToMonitor();
       return {
@@ -185,7 +145,7 @@ export const monitorProcedure = t.router({
         data: result,
       };
     } catch (error) {
-      console.error("Error updating monitors:", error);
+      console.error("Error updating monitors inside update status:", error);
       throw new Error("Failed to update monitors");
     }
   }),

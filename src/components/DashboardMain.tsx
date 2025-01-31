@@ -4,7 +4,6 @@ import { Button } from "./ui/button";
 import Form from "./Form";
 import { trpc } from "@/trpc/client";
 import { EllipsisVertical } from "lucide-react";
-import Loader from "./Loader";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +13,9 @@ import {
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
 import { toast } from "sonner";
+import Link from "next/link";
+import { Spinner } from "./Spinner";
+import { useRouter } from "next/navigation";
 
 export default function DashboardMain() {
   const about = [
@@ -22,6 +24,8 @@ export default function DashboardMain() {
     { id: 3, name: "Down" },
   ];
   const [active, setActive] = useState(1);
+  const router = useRouter();
+
   const query = trpc.getAllWebsites.useQuery();
   const handleFetch = async () => {
     await query.refetch();
@@ -45,8 +49,6 @@ export default function DashboardMain() {
       error: (err) => err.message,
     });
   };
-
-  console.log(query.data);
 
   return (
     <div className="bg-[#1e293b] min-w-full min-h-screen flex flex-col items-start">
@@ -93,7 +95,7 @@ export default function DashboardMain() {
         <div className="w-full flex flex-col gap-5 mt-10">
           {query.isFetching ? (
             <div className="flex justify-center  items-center mt-10 w-full">
-              <Loader></Loader>
+              <Spinner size="medium" className="text-white"></Spinner>
             </div>
           ) : query.data?.monitors.length != 0 ? (
             query.data?.monitors.map((el) => (
@@ -101,12 +103,17 @@ export default function DashboardMain() {
                 key={el.id}
                 className={` w-full flex justify-between ${
                   !el.isActive && "hidden"
-                }`}
+                } hover:bg-gray-700 p-2 transition-all duration-150 rounded-sm`}
+                onClick={() => {
+                  router.push(`Statistics/${el.urlId}`);
+                }}
               >
                 <div className=" text-white font-medium">
-                  <p>{el.name}</p>
+                  <Link href={el.url as string} target="blank">
+                    {el.name}
+                  </Link>
                   <p>{el.statuscode as number}</p>
-                  <p>{new Date(el.lastCheck as Date).toLocaleTimeString()}</p>
+                  <p>{new Date(el.lastCheck as Date).toUTCString()}</p>
                 </div>
                 <div className="flex gap-2 items-center flex-row">
                   <div className="relative">
